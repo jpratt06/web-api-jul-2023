@@ -1,3 +1,5 @@
+using EmployeesHrApi.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace EmployeesHrAPI
 {
@@ -14,6 +16,13 @@ namespace EmployeesHrAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            var employeesConnectionString = builder.Configuration.GetConnectionString("employees") ?? throw new Exception("Need a Connection String");
+
+            builder.Services.AddDbContext<EmployeeDataContext>(options =>
+            {
+                options.UseSqlServer(employeesConnectionString);
+            });
+            
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
