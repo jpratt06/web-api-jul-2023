@@ -1,3 +1,4 @@
+using AutoMapper;
 using EmployeesHrApi.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,7 +23,18 @@ namespace EmployeesHrAPI
             {
                 options.UseSqlServer(employeesConnectionString);
             });
-            
+
+            var mapperConfig = new MapperConfiguration(opt =>
+            {
+                opt.AddProfile<EmployeesHrApi.AutomapperProfiles.Employees>();
+                opt.AddProfile<EmployeesHrApi.AutomapperProfiles.HiringRequestProfile>();
+            });
+
+            var mapper = mapperConfig.CreateMapper();
+
+            builder.Services.AddSingleton<IMapper>(mapper);
+            builder.Services.AddSingleton<MapperConfiguration>(mapperConfig);
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
