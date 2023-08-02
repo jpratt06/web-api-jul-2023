@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EmployeesHrApi.Data;
+using System.ComponentModel.DataAnnotations;
 
 namespace EmployeesHrApi.Models;
 
@@ -39,5 +40,5 @@ public record HiringRequestResponseModel
     public string HomePhone { get; set; } = string.Empty;
     public string RequestedDepartment { get; set; } = string.Empty;
     public decimal RequiredSalary { get; set; }
-    public string HiringRequestStatus { get; set; } = string.Empty;
+    public HiringRequestStatus Status { get; set; }
 }

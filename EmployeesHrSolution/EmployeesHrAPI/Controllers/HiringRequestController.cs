@@ -8,12 +8,38 @@ using Microsoft.EntityFrameworkCore;
 namespace EmployeesHrApi.Controllers;
 
 
+
 // Dont do this either.[ApiController] //Automatically sends down in json format a list of errors instead of using return ModelState.
 public class HiringRequestsController : ControllerBase
 {
     private readonly EmployeeDataContext _context;
     private readonly IMapper _mapper;
     private readonly MapperConfiguration _mapperConfig;
+
+    [HttpPost("/denied-hiring-requests")]
+    public async Task<ActionResult> DenyHiringRequestAsync([FromBody] HiringRequestResponseModel request)
+    {
+        var id = int.Parse(request.Id);
+        if (request.Status != HiringRequestStatus.WaitingForJobAssignment)
+        {
+            return BadRequest("Can only deny pending assignments");
+        }
+        var savedHiringRequest = await _context.HiringRequests.Where(h => h.Id == id)
+            .SingleOrDefaultAsync();
+
+
+
+        if (savedHiringRequest == null)
+        {
+            return BadRequest();
+        }
+        else
+        {
+            savedHiringRequest.Status = HiringRequestStatus.Denied;
+            await _context.SaveChangesAsync();
+            return NoContent(); // or the mapped hiring request.
+        }
+    }
 
     public HiringRequestsController(EmployeeDataContext context, IMapper mapper, MapperConfiguration mapperConfig)
     {
