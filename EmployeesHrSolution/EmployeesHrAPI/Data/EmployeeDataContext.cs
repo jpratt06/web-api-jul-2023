@@ -13,7 +13,6 @@ public class EmployeeDataContext : DbContext
     public DbSet<HiringRequests> HiringRequests { get; set; }
 
 protected override void OnModelCreating(ModelBuilder modelBuilder)
-
     {
 
         modelBuilder.Entity<Employee>()
@@ -25,16 +24,21 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
         modelBuilder.Entity<Employee>().Property(e => e.Salary).HasPrecision(16, 2);
         modelBuilder.Entity<HiringRequests>().Property(e => e.RequiredSalary).HasPrecision(16, 2);
     }
+
     //This method returns an IQuerable that knows how to get employees in a department or all of them.
     public IQueryable<Employee> GetEmployeesByDepartment(string department)
     {
         if (department != "All")
         {
-            return Employees.Where(e => e.Department == department);
+            return GetActiveEmployees().Where(e => e.Department == department);
         }
         else
         {
-            return Employees;
+            return GetActiveEmployees();
         }
+    }
+    public IQueryable<Employee> GetActiveEmployees()
+    {
+        return Employees.Where(e => e.Fired == false);
     }
 }

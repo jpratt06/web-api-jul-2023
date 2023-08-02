@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using EmployeesHrApi.AutomapperProfiles;
 using EmployeesHrApi.Data;
 using EmployeesHrApi.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -22,13 +23,48 @@ public class EmployeesController : ControllerBase
         _config = config;
     }
 
-    [HttpGet("/employees/{employeeId:int}")] //:int causes controller isto not be created if user inputs a non int value. Called a route constraint. Nothing gets logged, nothing is executed.
 
+
+
+
+    [HttpGet("/employees/{employeeId:int}/salary")]
+    public async Task<ActionResult> GetAnEmployeesSalaryAsync(int employeeId)
+    {
+        var salary = await _context.GetActiveEmployees()
+            .Where(e => e.Id == employeeId)
+            .Select(e => e.Salary)
+            .SingleOrDefaultAsync();
+
+        if (salary == 0)
+        {
+            return NotFound();
+        }
+        else
+        {
+            var response = new EmployeeSalaryInformationResponse { Salary = salary };
+            return Ok(response);
+        }
+    }
+
+    [HttpDelete("/employees/{id:int}")]
+    public async Task<ActionResult> FireEmployeeAsync(int id)
+    {
+        var employee = await _context.Employees.Where(e => e.Id == id && e.Fired == false).SingleOrDefaultAsync();
+        if (employee is not null)
+        {
+            employee.Fired = true;
+            await _context.SaveChangesAsync();
+        }
+        return NoContent();
+    }
+
+    //GET /employees/{employeeId:int}
+    [HttpGet("/employees/{employeeId:int}")] //:int causes controller isto not be created if user inputs a non int value. Called a route constraint. Nothing gets logged, nothing is executed.
     public async Task<ActionResult> GetAnEmployeeAsync(int employeeId)
     {
         _logger.LogInformation("Got the following employeeId {0}", employeeId)
 ;
-        var employee = await _context.Employees
+        var employee = await _context.GetActiveEmployees()
             .Where(e => e.Id == employeeId)
             .ProjectTo<EmployeeDetailsResponseModel>(_config)
             //.Select(e => new EmployeeDetailsResponseModel // Employee => EmployeeDetailsResposeModel
@@ -71,7 +107,7 @@ public class EmployeesController : ControllerBase
         {
             Employees = employees,
             ShowingDepartment = department
-        }; 
+        };
         return Ok(response);
     }
 }

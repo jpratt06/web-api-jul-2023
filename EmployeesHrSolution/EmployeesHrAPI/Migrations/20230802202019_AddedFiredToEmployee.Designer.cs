@@ -3,6 +3,7 @@ using EmployeesHrApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EmployeesHrAPI.Migrations
 {
     [DbContext(typeof(EmployeeDataContext))]
-    partial class EmployeeDataContextModelSnapshot : ModelSnapshot
+    [Migration("20230802202019_AddedFiredToEmployee")]
+    partial class AddedFiredToEmployee
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
