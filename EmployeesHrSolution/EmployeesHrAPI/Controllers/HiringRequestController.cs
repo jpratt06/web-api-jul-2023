@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using EmployeesHrApi.Data;
+using EmployeesHrApi.HttpAdapters;
 using EmployeesHrApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +16,67 @@ public class HiringRequestsController : ControllerBase
     private readonly EmployeeDataContext _context;
     private readonly IMapper _mapper;
     private readonly MapperConfiguration _mapperConfig;
+    private readonly TelecomHttpAdapter _telecomHttp;
+
+    public HiringRequestsController(EmployeeDataContext context, IMapper mapper, MapperConfiguration mapperConfig, TelecomHttpAdapter telecomHttp)
+    {
+        _context = context;
+        _mapper = mapper;
+        _mapperConfig = mapperConfig;
+        _telecomHttp = telecomHttp;
+    }
+
+    [HttpPost("/approved-hiring-requests")]
+    public async Task<ActionResult> ApproveHiringRequestAsync([FromBody] HiringRequestResponseModel request)
+    {
+        var id = int.Parse(request.Id);
+        if (request.Status != HiringRequestStatus.WaitingForJobAssignment)
+        {
+            return BadRequest("Can only deny pending assignments");
+        }
+        var savedHiringRequest = await _context.HiringRequests.Where(h => h.Id == id)
+            .SingleOrDefaultAsync();
+
+        if (savedHiringRequest == null)
+        {
+            return BadRequest();
+        }
+        else
+        {
+            if (savedHiringRequest.Status != HiringRequestStatus.WaitingForJobAssignment)
+            {
+                return BadRequest();
+            }
+
+            savedHiringRequest.Status = HiringRequestStatus.Hired;
+
+            var newHireRequest = new NewHireRequestModel
+            {
+                Id = id,
+                Department = request.RequestedDepartment,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+            };
+            var teleComInfo = await _telecomHttp.GetTelecomInfoForNewHire(newHireRequest);
+            if (teleComInfo == null)
+            {
+                throw new ArgumentNullException("The Api Done Crashed");
+            }
+
+            var employee = new Employee
+            {
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                Department = request.RequestedDepartment,
+                Salary = request.RequiredSalary,
+                Email = teleComInfo.EmailAddress,
+                PhoneExtensions = teleComInfo.PhoneExtension
+            };
+            _context.Employees.Add(employee);
+            await _context.SaveChangesAsync();
+            return NoContent(); // or the mapped hiring request.
+        }
+    }
 
     [HttpPost("/denied-hiring-requests")]
     public async Task<ActionResult> DenyHiringRequestAsync([FromBody] HiringRequestResponseModel request)
@@ -35,17 +97,15 @@ public class HiringRequestsController : ControllerBase
         }
         else
         {
+            if (savedHiringRequest.Status != HiringRequestStatus.WaitingForJobAssignment)
+            {
+                return BadRequest();
+            }
+
             savedHiringRequest.Status = HiringRequestStatus.Denied;
             await _context.SaveChangesAsync();
             return NoContent(); // or the mapped hiring request.
         }
-    }
-
-    public HiringRequestsController(EmployeeDataContext context, IMapper mapper, MapperConfiguration mapperConfig)
-    {
-        _context = context;
-        _mapper = mapper;
-        _mapperConfig = mapperConfig;
     }
 
     [HttpPost("/hiring-requests")]
