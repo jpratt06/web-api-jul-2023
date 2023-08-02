@@ -12,4 +12,4 @@ public class HiringRequests
     public HiringRequestStatus Status { get; set; }
 }
 
-public enum HiringRequestStatus { WaitingForJobAssignment, Hired, Denied }
+public enum HiringRequestStatus { WaitingForJobAssignment, Hired, Denied } //only valid values. are stored as 0,1,2 in database.

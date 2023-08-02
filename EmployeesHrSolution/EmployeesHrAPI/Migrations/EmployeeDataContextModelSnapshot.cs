@@ -31,28 +31,36 @@ namespace EmployeesHrAPI.Migrations
 
                     b.Property<string>("Department")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("PhoneExtensions")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Salary")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(16, 2)
+                        .HasColumnType("decimal(16,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Department");
+
+                    SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("Department"), false);
 
                     b.ToTable("Employees");
                 });
@@ -86,7 +94,8 @@ namespace EmployeesHrAPI.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("RequiredSalary")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(16, 2)
+                        .HasColumnType("decimal(16,2)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
