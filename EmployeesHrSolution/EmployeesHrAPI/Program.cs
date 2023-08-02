@@ -1,10 +1,10 @@
 using AutoMapper;
+using EmployeesHrApi;
 using EmployeesHrApi.Data;
 using EmployeesHrApi.HttpAdapters;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
-using EmployeesHrApi.HttpAdapters;
-
+    
 namespace EmployeesHrAPI
 {
     public class Program
@@ -46,16 +46,11 @@ namespace EmployeesHrAPI
             var teleComUrl = builder.Configuration.GetValue<string>("telecom-uri") ?? throw new Exception("Need a telecom URI");
 
             builder.Services.AddHttpClient<TelecomHttpAdapter>(client =>
-
             {
-
                 client.BaseAddress = new Uri(teleComUrl);
-
-                client.DefaultRequestHeaders.Add("User-Agent", "employeeshrapi");
-
-            });
-
-
+                client.DefaultRequestHeaders.Add("User-Agent", "employeeshrapi"); //example
+            }).AddPolicyHandler(HttpSrePolicies.GetDefaultRetryPolicy())
+            .AddPolicyHandler(HttpSrePolicies.GetDefaultCircuitBreaker());
 
             var app = builder.Build();
 

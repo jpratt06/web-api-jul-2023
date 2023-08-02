@@ -57,10 +57,26 @@ public class HiringRequestsController : ControllerBase
                 FirstName = request.FirstName,
                 LastName = request.LastName,
             };
-            var teleComInfo = await _telecomHttp.GetTelecomInfoForNewHire(newHireRequest);
-            if (teleComInfo == null)
+
+            string emailAddress = "";
+            string phoneExtension = "";
+
+            try
             {
-                throw new ArgumentNullException("The Api Done Crashed");
+                var teleComInfo = await _telecomHttp.GetTelecomInfoForNewHire(newHireRequest);
+                if (teleComInfo == null)
+                {
+                    throw new ArgumentNullException("The Api Done Crashed");
+                }
+                emailAddress = teleComInfo.EmailAddress;
+                phoneExtension = teleComInfo.PhoneExtension;
+            }
+            catch (Exception)
+            {
+                // do your plan B (more sophisticated than this, probably).
+                emailAddress = "Check With Your Manager";
+                phoneExtension = "Check With Manager";
+                //log an error, do something so the manager or whoever can follow up on this.
             }
 
             var employee = new Employee
@@ -69,8 +85,8 @@ public class HiringRequestsController : ControllerBase
                 LastName = request.LastName,
                 Department = request.RequestedDepartment,
                 Salary = request.RequiredSalary,
-                Email = teleComInfo.EmailAddress,
-                PhoneExtensions = teleComInfo.PhoneExtension
+                Email = emailAddress,
+                PhoneExtensions = phoneExtension
             };
             _context.Employees.Add(employee);
             await _context.SaveChangesAsync();
